@@ -56,3 +56,17 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 /generated/prisma
+
+# Local database files (prevent committing dev DBs)
+*.db
+*.sql
+/dev.db
+
+# Postgres local data directories
+/pgdata/
+/var/lib/postgresql/
+
+# Ignore DB credentials and environment files (keep .env.example if present)
+.env
+.env.*.local
+.env.local
