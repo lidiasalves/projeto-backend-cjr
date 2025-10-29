@@ -33,12 +33,12 @@ model Loja {
   id            Int      @id @default(autoincrement())
   nome          String   @db.VarChar(255)
   descricao     String
-  logo_url      String?  @db.VarChar(255)
-  banner_url    String?   @db.VarChar(255)
+  logo_url      String   @db.VarChar(255)
+  banner_url    String   @db.VarChar(255)
   sticker_url   String?  @db.VarChar(255)
   criado_em     DateTime @default(now())
-  atualizado_em DateTime @updatedAt
   
+  atualizado_em DateTime @updatedAt
   usuario       Usuario  @relation(fields: [UsuarioId], references: [id])
   UsuarioId     Int
   
@@ -49,7 +49,7 @@ model Loja {
 model Produto {
   id                Int @id @default(autoincrement())
   nome              String @db.VarChar(255)
-  descricao         String?
+  descricao         String
   preco             Decimal @db.Decimal(10, 2)
   estoque           Int
   criado_em         DateTime @default(now())
@@ -66,12 +66,12 @@ model Produto {
 }
 
 model Imagens_Produto {
-  id             Int @id @default(autoincrement())
-  url_imagem     String @db.VarChar(255)
+  id Int @id @default(autoincrement())
+  url_imagem String @db.VarChar(255)
   ordem_exibicao Int
   
-  produto        Produto @relation(fields: [ProdutoId], references: [id])
-  ProdutoId      Int
+  produto Produto @relation(fields: [ProdutoId], references: [id])
+  ProdutoId Int
 }
 
 model Categoria {
