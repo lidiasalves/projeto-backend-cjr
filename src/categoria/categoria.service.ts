@@ -14,6 +14,9 @@ export class CategoriaService {
         const categoriaPaiId = data.categoriaPaiId;
 
         if (categoriaPaiId){
+            if (categoriaPaiId === data.id) {
+                throw new Error("Uma categoria não pode ser subcategoria dela mesma");
+                }
             const categoriaPai = await this.prisma.categoria.findUnique({
                 where: {
                     id: categoriaPaiId,
@@ -68,7 +71,7 @@ export class CategoriaService {
         }
         
         if (categoriaPaiId == id){
-            throw new Error("Uma categoria não pode ser sub categoria dela mesma");
+            throw new Error("Uma categoria não pode ser subcategoria dela mesma");
         }
 
         return await this.prisma.categoria.update({
