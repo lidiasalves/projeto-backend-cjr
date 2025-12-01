@@ -9,6 +9,10 @@ import { UpdateUsuarioDto } from 'src/usuario/dto/update-usuario.dto';
 
 @Injectable()
 export class UsuarioService {
+  async findByEmail(email: string) {
+  return this.prisma.usuario.findUnique({ where: { email } });
+}
+
   constructor(private prisma: PrismaService) {}
 
   // Helper: campos que retornamos (sem senha_hash)
