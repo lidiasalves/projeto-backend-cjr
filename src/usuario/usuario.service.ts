@@ -111,12 +111,15 @@ export class UsuarioService {
     }
 
     // montar payload de update
-    const payload: any = {
-      nome: data.nome ?? usuarioExiste.nome,
-      email: data.email ?? usuarioExiste.email,
-      username: data.username ?? usuarioExiste.username,
-      foto_perfil_url: data.foto_perfil_url ?? usuarioExiste.foto_perfil_url,
-    };
+    const payload: any = {};
+
+    if (data.nome !== undefined) payload.nome = data.nome;
+    if (data.email !== undefined) payload.email = data.email;
+    if (data.username !== undefined) payload.username = data.username;
+    // Só atualiza a foto SE vier algo do front
+    if (data.foto_perfil_url !== undefined) {
+      payload.foto_perfil_url = data.foto_perfil_url;
+    }
 
     // se senha foi fornecida no update (campo 'senha'), re-hash e salva em senha_hash
     if (data.senha) {
@@ -147,4 +150,22 @@ export class UsuarioService {
     });
     return deleted;
   }
+  async resetFoto(id: number) {
+  const usuarioExiste = await this.prisma.usuario.findUnique({
+    where: { id },
+  });
+
+  if (!usuarioExiste) {
+    throw new NotFoundException('Usuário não existe!');
+  }
+
+  const updated = await this.prisma.usuario.update({
+    where: { id },
+    data: { foto_perfil_url: null },
+    select: this.userSelect,
+  });
+
+  return updated;
+}
+
 }

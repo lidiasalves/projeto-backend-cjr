@@ -1,14 +1,17 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable prettier/prettier */
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
+import express from "express";
+import path from "path";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
     origin: 'http://localhost:3000',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
 
@@ -17,15 +20,17 @@ async function bootstrap() {
       whitelist: true,
       transform: true,
       exceptionFactory: (errors) => {
-        // gera apenas as mensagens de validação do class-validator
-        const mensagens = errors.flatMap((err) =>
-          Object.values(err.constraints ?? {}),
-        );
-
-        return new BadRequestException(mensagens);
+        const msgs = errors.flatMap((e) => Object.values(e.constraints ?? {}));
+        return new BadRequestException(msgs);
       },
     }),
   );
+
+  // SERVE ARQUIVOS ESTÁTICOS
+  const uploadPath = path.join(process.cwd(), 'uploads');
+  console.log("Servindo uploads em:", uploadPath);
+
+  app.use('/uploads', express.static(uploadPath));
 
   await app.listen(process.env.PORT ?? 3001);
 }
