@@ -167,5 +167,31 @@ export class UsuarioService {
 
   return updated;
 }
+async alterarSenha(id: number, senhaAntiga: string, novaSenha: string) {
+  const user = await this.prisma.usuario.findUnique({ where: { id } });
+
+  if (!user) {
+    throw new NotFoundException('Usuário não encontrado');
+  }
+
+  // Verifica a senha antiga
+  const senhaCorreta = await bcrypt.compare(senhaAntiga, user.senha_hash);
+
+  if (!senhaCorreta) {
+    throw new BadRequestException('Senha antiga incorreta');
+  }
+
+  // Gera hash da nova senha
+  const novaSenhaHash = await bcrypt.hash(novaSenha, 10);
+
+  // Atualiza no banco
+  await this.prisma.usuario.update({
+    where: { id },
+    data: { senha_hash: novaSenhaHash },
+  });
+
+  return { message: 'Senha alterada com sucesso!' };
+}
+
 
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
@@ -74,4 +75,10 @@ export class UsuarioController {
       foto_perfil_url: fotoUrl,
     });
   }
+  @Patch('alterar-senha')
+async alterarSenha(@Body() body: any) {
+  const { id, senhaAntiga, novaSenha } = body;
+  return this.usuarioService.alterarSenha(id, senhaAntiga, novaSenha);
+}
+
 }
