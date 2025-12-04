@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Body,
   Controller,
@@ -7,30 +10,31 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import type { ProdutoDto } from './dto/produto.dto';
 import type { Produto } from '@prisma/client';
 import { ProdutoService } from './produto.service';
+import { CreateProdutoDto } from './dto/createProduto.dto';
+import { UpdateProdutoDto } from './dto/updateProduto.dto';
 
 @Controller('produto')
 export class ProdutoController {
   constructor(private readonly produtoService: ProdutoService) {}
 
   @Post()
-  async create(@Body() data: ProdutoDto): Promise<Produto> {
+  async create(@Body() data: CreateProdutoDto): Promise<Produto> {
     return this.produtoService.create(data);
-  }
-
-  @Get()
-  async findAll(): Promise<Produto[]> {
-    return this.produtoService.findAll();
   }
 
   @Put(':id')
   async update(
     @Param('id') id: string,
-    @Body() data: ProdutoDto,
+    @Body() data: UpdateProdutoDto,
   ): Promise<Produto> {
     return this.produtoService.update(Number(id), data);
+  }
+
+  @Get()
+  async findAll(): Promise<Produto[]> {
+    return this.produtoService.findAll();
   }
 
   @Delete(':id')
