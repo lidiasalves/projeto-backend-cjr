@@ -17,6 +17,7 @@ export class CreateProdutoDto {
 
   @IsInt()
   LojaId: number;
+  
 
   @IsInt()
   CategoriaId: number;

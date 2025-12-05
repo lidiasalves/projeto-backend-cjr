@@ -10,19 +10,18 @@ generator client {
 
 datasource db {
   provider = "postgresql" // Define o provedor como PostgreSQL
-  url      = env("DATABASE_URL") // Lê a string de conexão do arquivo .env
 }
 
 model Usuario {
-  id                    Int     @id @default(autoincrement())
-  username              String  @unique @db.VarChar(50)
-  nome                  String @db.VarChar(255)
-  senha_hash            String @db.VarChar(255)
-  email                 String  @unique @db.VarChar(255)
-  foto_perfil_url       String? @db.VarChar(255)
-  criado_em             DateTime @default(now())
-  atualizado_em         DateTime @updatedAt
-  
+  id              Int      @id @default(autoincrement())
+  username        String   @unique @db.VarChar(50)
+  nome            String   @db.VarChar(255)
+  senha_hash      String   @db.VarChar(255)
+  email           String   @unique @db.VarChar(255)
+  foto_perfil_url String?  @db.VarChar(255)
+  criado_em       DateTime @default(now())
+  atualizado_em   DateTime @updatedAt
+
   lojas                 Loja[]
   avaliacoes_loja       Avaliacoes_Loja[]
   comentarios_avaliacao Comentario_Avaliacao[]
@@ -32,104 +31,107 @@ model Usuario {
 model Loja {
   id            Int      @id @default(autoincrement())
   nome          String   @db.VarChar(255)
-  descricao     String
+  descricao     String?
   logo_url      String?  @db.VarChar(255)
-  banner_url    String?   @db.VarChar(255)
+  banner_url    String?  @db.VarChar(255)
   sticker_url   String?  @db.VarChar(255)
   criado_em     DateTime @default(now())
   atualizado_em DateTime @updatedAt
-  
-  usuario       Usuario  @relation(fields: [UsuarioId], references: [id])
-  UsuarioId     Int
-  
-  produtos      Produto[]
-  avaliacoes    Avaliacoes_Loja[]
+
+  usuario   Usuario @relation(fields: [UsuarioId], references: [id])
+  UsuarioId Int
+
+  produtos   Produto[]
+  avaliacoes Avaliacoes_Loja[]
+
+  categoria   Categoria @relation(fields: [CategoriaId], references: [id])
+  CategoriaId Int
 }
 
 model Produto {
-  id                Int @id @default(autoincrement())
-  nome              String @db.VarChar(255)
-  descricao         String?
-  preco             Decimal @db.Decimal(10, 2)
-  estoque           Int
-  criado_em         DateTime @default(now())
-  atualizado_em     DateTime @updatedAt
-  
-  loja              Loja @relation(fields: [LojaId], references: [id])
-  LojaId            Int
-  
-  categoria         Categoria @relation(fields: [CategoriaId], references: [id])
-  CategoriaId       Int
-  
+  id            Int      @id @default(autoincrement())
+  nome          String   @db.VarChar(255)
+  descricao     String?
+  preco         Decimal  @db.Decimal(10, 2)
+  estoque       Int
+  criado_em     DateTime @default(now())
+  atualizado_em DateTime @updatedAt
+
+  loja   Loja @relation(fields: [LojaId], references: [id])
+  LojaId Int
+
+  categoria   Categoria @relation(fields: [CategoriaId], references: [id])
+  CategoriaId Int
+
   imagens           Imagens_Produto[]
   avalicoes_produto Avalicoes_Produto[]
 }
 
 model Imagens_Produto {
-  id             Int @id @default(autoincrement())
+  id             Int    @id @default(autoincrement())
   url_imagem     String @db.VarChar(255)
   ordem_exibicao Int
-  
-  produto        Produto @relation(fields: [ProdutoId], references: [id])
-  ProdutoId      Int
+
+  produto   Produto @relation(fields: [ProdutoId], references: [id])
+  ProdutoId Int
 }
 
 model Categoria {
-  id               Int @id @default(autoincrement())
-  nome             String @db.VarChar(100)
-  
+  id   Int    @id @default(autoincrement())
+  nome String @db.VarChar(100)
+
   categoria_pai    Categoria? @relation("CategoriaPai", fields: [categoria_pai_id], references: [id])
   categoria_pai_id Int?
-  
-  subcategorias    Categoria[] @relation("CategoriaPai")
-  produtos         Produto[]
+
+  subcategorias Categoria[] @relation("CategoriaPai")
+  produtos      Produto[]
+  lojas         Loja[]
 }
 
 model Avaliacoes_Loja {
-  id             Int @id @default(autoincrement())
-  nota           Int 
-  comentario     String?
-  criado_em      DateTime @default(now())
-  atualizado_em  DateTime @updatedAt
-  
-  loja           Loja @relation(fields: [LojaId], references: [id])
-  LojaId         Int
-  
-  usuario        Usuario @relation(fields: [UsuarioId], references: [id])
-  UsuarioId      Int
-  
-  comentarios    Comentario_Avaliacao[]
-}
-
-model Avalicoes_Produto {
-  id            Int @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   nota          Int
   comentario    String?
   criado_em     DateTime @default(now())
   atualizado_em DateTime @updatedAt
 
-  usuario       Usuario @relation(fields: [UsuarioId], references: [id])
-  UsuarioId     Int
+  loja   Loja @relation(fields: [LojaId], references: [id])
+  LojaId Int
 
-  produto       Produto @relation(fields: [ProdutoId], references: [id])
-  ProdutoId     Int
+  usuario   Usuario @relation(fields: [UsuarioId], references: [id])
+  UsuarioId Int
+
+  comentarios Comentario_Avaliacao[]
+}
+
+model Avalicoes_Produto {
+  id            Int      @id @default(autoincrement())
+  nota          Int
+  comentario    String?
+  criado_em     DateTime @default(now())
+  atualizado_em DateTime @updatedAt
+
+  usuario   Usuario @relation(fields: [UsuarioId], references: [id])
+  UsuarioId Int
+
+  produto   Produto @relation(fields: [ProdutoId], references: [id])
+  ProdutoId Int
 
   comentarios Comentario_Avaliacao[]
 }
 
 model Comentario_Avaliacao {
-  id                 Int      @id @default(autoincrement())
-  conteudo           String
-  criado_em          DateTime @default(now())
-  atualizado_em      DateTime @updatedAt
-  
-  avaliacao_loja     Avaliacoes_Loja? @relation(fields: [AvaliacaoId], references: [id])
-  AvaliacaoId        Int?
-  
+  id            Int      @id @default(autoincrement())
+  conteudo      String
+  criado_em     DateTime @default(now())
+  atualizado_em DateTime @updatedAt
+
+  avaliacao_loja Avaliacoes_Loja? @relation(fields: [AvaliacaoId], references: [id])
+  AvaliacaoId    Int?
+
   avaliacao_produto  Avalicoes_Produto? @relation(fields: [AvaliacaoProdutoId], references: [id])
   AvaliacaoProdutoId Int?
 
-  usuario            Usuario @relation(fields: [UsuarioId], references: [id])
-  UsuarioId          Int
+  usuario   Usuario @relation(fields: [UsuarioId], references: [id])
+  UsuarioId Int
 }
-
