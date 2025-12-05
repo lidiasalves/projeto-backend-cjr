@@ -1,42 +1,42 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
-  Param,
   Post,
-  Put,
+  Body,
+  Patch,
+  Param,
+  Delete,
 } from '@nestjs/common';
-import type { LojaDto } from './dto/loja.dto';
-import type { Loja } from '@prisma/client';
 import { LojaService } from './loja.service';
+import { CreateLojaDto } from './dto/create-loja.dto';
+import { UpdateLojaDto } from './dto/update-loja.dto';
 
 @Controller('loja')
 export class LojaController {
   constructor(private readonly lojaService: LojaService) {}
 
   @Post()
-  async create(@Body() data: LojaDto): Promise<Loja> {
-    return this.lojaService.create(data);
+  create(@Body() createLojaDto: CreateLojaDto) {
+    return this.lojaService.create(createLojaDto);
   }
 
   @Get()
-  async findAll(): Promise<Loja[]> {
+  findAll() {
     return this.lojaService.findAll();
   }
 
-  @Put(':id')
-  async update(@Param('id') id: string, @Body() data: LojaDto): Promise<Loja> {
-    return this.lojaService.update(Number(id), data);
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.lojaService.findOne(+id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateLojaDto: UpdateLojaDto) {
+    return this.lojaService.update(+id, updateLojaDto);
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<Loja> {
-    return this.lojaService.delete(Number(id));
-  }
-
-  @Get(':id')
-  async getByID(@Param('id') id: string): Promise<Loja> {
-    return this.lojaService.getById(Number(id));
+  remove(@Param('id') id: string) {
+    return this.lojaService.remove(+id);
   }
 }

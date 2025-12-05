@@ -18,7 +18,7 @@ async function bootstrap() {
     prefix: '/uploads', // URL base para acessar imagens
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3001);
   console.log('API rodando em http://localhost:3001');
 }
 
