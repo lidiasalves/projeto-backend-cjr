@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -61,12 +63,34 @@ export class ProdutoController {
   }
 
   @Put(':id')
-  async update(
-    @Param('id') id: string,
-    @Body() data: UpdateProdutoDto,
-  ): Promise<Produto> {
-    return this.produtoService.update(Number(id), data);
-  }
+@UseInterceptors(
+  FilesInterceptor('fotos', 4, {
+    storage: diskStorage({
+      destination: './uploads/produtos',
+      filename: (_req, file, callback) => {
+        const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        const ext = extname(file.originalname);
+        callback(null, `${unique}${ext}`);
+      },
+    }),
+    fileFilter: (_req, file, cb) => {
+      if (!file.mimetype.match(/\/(jpg|jpeg|png|webp|gif)$/)) {
+        return cb(new Error('Apenas imagens são permitidas'), false);
+      }
+      cb(null, true);
+    },
+    limits: { fileSize: 5 * 1024 * 1024 },
+  }),
+)
+async update(
+  @Param('id') id: string,
+  @UploadedFiles() fotos: Express.Multer.File[] = [],
+  @Body() data: any,
+): Promise<any> {
+
+  return this.produtoService.update(Number(id), data, fotos);
+}
+
 
   @Get()
   async findAll(): Promise<Produto[]> {

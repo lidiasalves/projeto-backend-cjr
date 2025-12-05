@@ -45,13 +45,45 @@ export class ProdutoService {
     });
   }
 
-  async update(id: number, data: UpdateProdutoDto): Promise<Produto> {
-    const existe = await this.prisma.produto.findUnique({ where: { id } });
-    if (!existe) throw new NotFoundException('Produto não existe!');
+  async update(
+    id: number,
+    data: UpdateProdutoDto,
+    fotos: Express.Multer.File[],
+  ) {
+    const produto = await this.prisma.produto.findUnique({
+      where: { id },
+      include: { imagens: true },
+    });
 
-    return this.prisma.produto.update({
+    if (!produto) throw new NotFoundException('Produto não existe!');
+
+    // Atualiza dados do produto
+    await this.prisma.produto.update({
       where: { id },
       data,
+    });
+
+    // Se vieram novas imagens, sobrescreve
+    if (fotos.length > 0) {
+      const baseUrl = process.env.API_BASE_URL ?? 'http://localhost:3001';
+
+      // Apaga imagens antigas
+      await this.prisma.imagens_Produto.deleteMany({
+        where: { ProdutoId: id },
+      });
+
+      // Salva novas
+      await this.prisma.imagens_Produto.createMany({
+        data: fotos.map((foto, i) => ({
+          url_imagem: `${baseUrl}/uploads/produtos/${foto.filename}`,
+          ordem_exibicao: i,
+          ProdutoId: id,
+        })),
+      });
+    }
+
+    return this.prisma.produto.findUnique({
+      where: { id },
       include: { imagens: true },
     });
   }
