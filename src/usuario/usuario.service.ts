@@ -70,34 +70,43 @@ export class UsuarioService {
   }
 
   // GET BY ID (Modificado para trazer TUDO para o perfil)
-  async getById(id: number) {
-    const usuario = await this.prisma.usuario.findUnique({
-      where: { id },
-      // Ao invés de usar só o userSelect básico, expandimos ele:
-      select: {
-        ...this.userSelect, // Traz id, nome, email...
-        
-        // Traz as Lojas do usuário
-        lojas: {
-          include: {
-            produtos: true, // E dentro da loja, traz os produtos (para o carrossel de produtos)
-          }
-        },
-
-        // Traz as Avaliações que ele fez
-        avaliacoes_loja: {
-          include: {
-            loja: true // Traz o nome da loja que ele avaliou
-          }
+async getById(id: number) {
+  const usuario = await this.prisma.usuario.findUnique({
+    where: { id },
+    // Ao invés de usar só o userSelect básico, expandimos ele:
+    select: {
+      ...this.userSelect, // Traz id, nome, email...
+      
+      // Traz as Lojas do usuário
+      lojas: {
+        include: {
+          produtos: true, // E dentro da loja, traz os produtos (para o carrossel de produtos)
         }
       },
-    });
 
-    if (!usuario) {
-      throw new NotFoundException('Usuário não existe!');
-    }
-    return usuario;
+      // Traz as Avaliações que ele fez
+      avaliacoes_loja: {
+        include: {
+          // CORREÇÃO CRÍTICA: Precisamos incluir a loja para pegar o ID e o Nome
+          loja: {
+            select: {
+                id: true,
+                nome: true,
+                logo_url: true // Para a foto da loja aparecer na aba de avaliações
+            }
+          },
+          // Incluir o usuário (quem fez o review) para que a foto do usuário apareça no review (embora nesse contexto, seja o usuário logado)
+          usuario: true 
+        }
+      }
+    },
+  });
+
+  if (!usuario) {
+    throw new NotFoundException('Usuário não existe!');
   }
+  return usuario;
+}
 
   // UPDATE
   async update(id: number, data: UpdateUsuarioDto) {
