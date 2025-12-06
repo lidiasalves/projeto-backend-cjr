@@ -16,11 +16,15 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
+// Se você tiver um CreateLojaDto e UpdateLojaDto, use-os aqui
+// import { CreateLojaDto } from './dto/create-loja.dto';
+// import { UpdateLojaDto } from './dto/update-loja.dto';
+
 @Controller('loja')
 export class LojaController {
   constructor(private readonly lojaService: LojaService) {}
 
- @Post()
+  @Post()
   @UseInterceptors(
     FileFieldsInterceptor(
       [
@@ -42,7 +46,7 @@ export class LojaController {
     ),
   )
   async create(
-    @Body() body: any,
+    @Body() body: any, // Use CreateLojaDto aqui
     @UploadedFiles()
     files: {
       logo?: Express.Multer.File[];
@@ -52,7 +56,6 @@ export class LojaController {
   ) {
     const baseUrl = 'http://localhost:3001/uploads/lojas';
 
-    // --- CORREÇÃO AQUI: Tipagem explícita ---
     let logo_url: string | null = null;
     let banner_url: string | null = null;
     let sticker_url: string | null = null;
@@ -80,8 +83,12 @@ export class LojaController {
     return this.lojaService.create(dadosParaBanco);
   }
 
+  // 💡 MUDANÇA 1: Adicionar 'async' é boa prática para chamadas de banco de dados.
   @Get()
-  findAll() {
+  async findAll() {
+    // ⚠️ ATENÇÃO: A correção PRINCIPAL está aqui. O LojaService.findAll()
+    // PRECISA incluir a Categoria. Se não fizer isso, o frontend não vê a categoria
+    // e o filtro falha (e possivelmente a renderização).
     return this.lojaService.findAll();
   }
 
@@ -91,7 +98,10 @@ export class LojaController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateLojaDto: any) {
+  update(
+    @Param('id') id: string,
+    @Body() updateLojaDto: any, // Use UpdateLojaDto aqui
+  ) {
     return this.lojaService.update(+id, updateLojaDto);
   }
 

@@ -31,15 +31,20 @@ export class LojaService {
     });
   }
 
-  async findAll() {
-    return await this.prisma.loja.findMany({
-      include: {
-        categoria: true,
-      },
-      orderBy: { criado_em: 'desc' }
-    });
-  }
+async findAll() {
+  const lojas = await this.prisma.loja.findMany({
+    include: {
+      categoria: true,
+    },
+    orderBy: { criado_em: 'desc' }
+  });
 
+  // 💡 NOVO: LOG PARA DEBUGAR
+  console.log('Lojas encontradas pelo Prisma:', lojas.length);
+  console.log('Primeira Loja (para estrutura):', lojas[0]); 
+  
+  return lojas;
+}
   async findOne(id: number) {
     const loja = await this.prisma.loja.findUnique({
       where: { id },
