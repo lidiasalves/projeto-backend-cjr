@@ -9,8 +9,8 @@ generator client {
 }
 
 datasource db {
-  url      = env("DATABASE_URL")
-  provider = "postgresql" // Define o provedor como PostgreSQL
+  provider = "postgresql"
+  url      = env("DATABASE_URL")  // Define o provedor como PostgreSQL
 }
 
 model Usuario {
@@ -30,26 +30,29 @@ model Usuario {
 }
 
 model Loja {
-  id          Int      @id @default(autoincrement())
-  nome        String   @db.VarChar(255)
-  descricao   String
-  logo_url    String   @db.VarChar(255)
-  banner_url  String   @db.VarChar(255)
-  sticker_url String?  @db.VarChar(255)
-  criado_em   DateTime @default(now())
-
+  id            Int      @id @default(autoincrement())
+  nome          String   @db.VarChar(255)
+  descricao     String?
+  logo_url      String?  @db.VarChar(255)
+  banner_url    String?  @db.VarChar(255)
+  sticker_url   String?  @db.VarChar(255)
+  criado_em     DateTime @default(now())
   atualizado_em DateTime @updatedAt
-  usuario       Usuario  @relation(fields: [UsuarioId], references: [id])
-  UsuarioId     Int
+
+  usuario   Usuario @relation(fields: [UsuarioId], references: [id])
+  UsuarioId Int
 
   produtos   Produto[]
   avaliacoes Avaliacoes_Loja[]
+
+  categoria   Categoria @relation(fields: [CategoriaId], references: [id])
+  CategoriaId Int
 }
 
 model Produto {
   id            Int      @id @default(autoincrement())
   nome          String   @db.VarChar(255)
-  descricao     String
+  descricao     String?
   preco         Decimal  @db.Decimal(10, 2)
   estoque       Int
   criado_em     DateTime @default(now())
@@ -83,6 +86,7 @@ model Categoria {
 
   subcategorias Categoria[] @relation("CategoriaPai")
   produtos      Produto[]
+  lojas         Loja[]
 }
 
 model Avaliacoes_Loja {
