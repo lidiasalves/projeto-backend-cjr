@@ -9,13 +9,13 @@ import { UpdateUsuarioDto } from 'src/usuario/dto/update-usuario.dto';
 
 @Injectable()
 export class UsuarioService {
-  async findByEmail(email: string) {
-  return this.prisma.usuario.findUnique({ where: { email } });
-}
-
   constructor(private prisma: PrismaService) {}
 
-  // Helper: campos que retornamos (sem senha_hash)
+  async findByEmail(email: string) {
+    return this.prisma.usuario.findUnique({ where: { email } });
+  }
+
+  // Helper: campos básicos que retornamos
   private readonly userSelect = {
     id: true,
     username: true,
@@ -44,7 +44,7 @@ export class UsuarioService {
       throw new BadRequestException('Username já está em uso.');
     }
 
-    // hash da senha (data.senha)
+    // hash da senha
     const senhaHash = await bcrypt.hash(data.senha, 10);
 
     const created = await this.prisma.usuario.create({
@@ -69,19 +69,37 @@ export class UsuarioService {
     });
   }
 
-  // GET BY ID
+  // GET BY ID (Modificado para trazer TUDO para o perfil)
   async getById(id: number) {
     const usuario = await this.prisma.usuario.findUnique({
       where: { id },
-      select: this.userSelect,
+      // Ao invés de usar só o userSelect básico, expandimos ele:
+      select: {
+        ...this.userSelect, // Traz id, nome, email...
+        
+        // Traz as Lojas do usuário
+        lojas: {
+          include: {
+            produtos: true, // E dentro da loja, traz os produtos (para o carrossel de produtos)
+          }
+        },
+
+        // Traz as Avaliações que ele fez
+        avaliacoes_loja: {
+          include: {
+            loja: true // Traz o nome da loja que ele avaliou
+          }
+        }
+      },
     });
+
     if (!usuario) {
       throw new NotFoundException('Usuário não existe!');
     }
     return usuario;
   }
 
-  // UPDATE (aceita UpdateUsuarioDto)
+  // UPDATE
   async update(id: number, data: UpdateUsuarioDto) {
     const usuarioExiste = await this.prisma.usuario.findUnique({
       where: { id },
@@ -90,7 +108,6 @@ export class UsuarioService {
       throw new NotFoundException('Usuário não existe!');
     }
 
-    // se trocar email, verificar duplicado
     if (data.email && data.email !== usuarioExiste.email) {
       const emailExist = await this.prisma.usuario.findUnique({
         where: { email: data.email },
@@ -100,7 +117,6 @@ export class UsuarioService {
       }
     }
 
-    // se trocar username, verificar duplicado
     if (data.username && data.username !== usuarioExiste.username) {
       const userExist = await this.prisma.usuario.findUnique({
         where: { username: data.username },
@@ -110,18 +126,15 @@ export class UsuarioService {
       }
     }
 
-    // montar payload de update
     const payload: any = {};
 
     if (data.nome !== undefined) payload.nome = data.nome;
     if (data.email !== undefined) payload.email = data.email;
     if (data.username !== undefined) payload.username = data.username;
-    // Só atualiza a foto SE vier algo do front
     if (data.foto_perfil_url !== undefined) {
       payload.foto_perfil_url = data.foto_perfil_url;
     }
 
-    // se senha foi fornecida no update (campo 'senha'), re-hash e salva em senha_hash
     if (data.senha) {
       const senhaHash = await bcrypt.hash(data.senha, 10);
       payload.senha_hash = senhaHash;
@@ -150,48 +163,45 @@ export class UsuarioService {
     });
     return deleted;
   }
+
   async resetFoto(id: number) {
-  const usuarioExiste = await this.prisma.usuario.findUnique({
-    where: { id },
-  });
+    const usuarioExiste = await this.prisma.usuario.findUnique({
+      where: { id },
+    });
 
-  if (!usuarioExiste) {
-    throw new NotFoundException('Usuário não existe!');
+    if (!usuarioExiste) {
+      throw new NotFoundException('Usuário não existe!');
+    }
+
+    const updated = await this.prisma.usuario.update({
+      where: { id },
+      data: { foto_perfil_url: null },
+      select: this.userSelect,
+    });
+
+    return updated;
   }
 
-  const updated = await this.prisma.usuario.update({
-    where: { id },
-    data: { foto_perfil_url: null },
-    select: this.userSelect,
-  });
+  async alterarSenha(id: number, senhaAntiga: string, novaSenha: string) {
+    const user = await this.prisma.usuario.findUnique({ where: { id } });
 
-  return updated;
-}
-async alterarSenha(id: number, senhaAntiga: string, novaSenha: string) {
-  const user = await this.prisma.usuario.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
 
-  if (!user) {
-    throw new NotFoundException('Usuário não encontrado');
+    const senhaCorreta = await bcrypt.compare(senhaAntiga, user.senha_hash);
+
+    if (!senhaCorreta) {
+      throw new BadRequestException('Senha antiga incorreta');
+    }
+
+    const novaSenhaHash = await bcrypt.hash(novaSenha, 10);
+
+    await this.prisma.usuario.update({
+      where: { id },
+      data: { senha_hash: novaSenhaHash },
+    });
+
+    return { message: 'Senha alterada com sucesso!' };
   }
-
-  // Verifica a senha antiga
-  const senhaCorreta = await bcrypt.compare(senhaAntiga, user.senha_hash);
-
-  if (!senhaCorreta) {
-    throw new BadRequestException('Senha antiga incorreta');
-  }
-
-  // Gera hash da nova senha
-  const novaSenhaHash = await bcrypt.hash(novaSenha, 10);
-
-  // Atualiza no banco
-  await this.prisma.usuario.update({
-    where: { id },
-    data: { senha_hash: novaSenhaHash },
-  });
-
-  return { message: 'Senha alterada com sucesso!' };
-}
-
-
 }
