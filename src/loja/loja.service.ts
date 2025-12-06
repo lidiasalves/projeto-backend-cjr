@@ -1,39 +1,57 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import type { Loja } from '@prisma/client';
-import { LojaDto } from './dto/loja.dto';
-import { PrismaService } from '../database/prisma.service';
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/database/prisma.service';
+import { CreateLojaDto } from './dto/create-loja.dto';
+import { UpdateLojaDto } from './dto/update-loja.dto';
 
 @Injectable()
 export class LojaService {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: LojaDto): Promise<Loja> {
-    const loja = await this.prisma.loja.create({ data });
-    return loja;
+  create(createLojaDto: CreateLojaDto) {
+    return this.prisma.loja.create({
+      data: {
+        nome: createLojaDto.nome,
+        descricao: createLojaDto.descricao || '',
+        logo_url: createLojaDto.logo_url || '',
+        banner_url: createLojaDto.banner_url || '',
+        sticker_url: createLojaDto.sticker_url || null,
+        UsuarioId: createLojaDto.UsuarioId,
+        CategoriaId: createLojaDto.CategoriaId,
+      },
+    });
   }
 
-  async findAll(): Promise<Loja[]> {
-    const lojas = await this.prisma.loja.findMany();
-    return lojas;
+  findAll() {
+    return this.prisma.loja.findMany({
+      include: {
+        usuario: true,
+        categoria: true,
+      },
+    });
   }
 
-  async update(id: number, data: LojaDto): Promise<Loja> {
-    const existe = await this.prisma.loja.findUnique({ where: { id } });
-    if (!existe) throw new NotFoundException('Loja não existe!');
-    const loja = await this.prisma.loja.update({ where: { id }, data });
-    return loja;
+  findOne(id: number) {
+    return this.prisma.loja.findUnique({
+      where: { id },
+      include: {
+        usuario: true,
+        categoria: true,
+        produtos: true,
+        avaliacoes: true,
+      },
+    });
   }
 
-  async delete(id: number): Promise<Loja> {
-    const existe = await this.prisma.loja.findUnique({ where: { id } });
-    if (!existe) throw new NotFoundException('Loja não existe!');
-    const loja = await this.prisma.loja.delete({ where: { id } });
-    return loja;
+  update(id: number, updateLojaDto: UpdateLojaDto) {
+    return this.prisma.loja.update({
+      where: { id },
+      data: updateLojaDto,
+    });
   }
 
-  async getById(id: number): Promise<Loja> {
-    const existe = await this.prisma.loja.findUnique({ where: { id } });
-    if (!existe) throw new NotFoundException('Loja não existe!');
-    return existe;
+  remove(id: number) {
+    return this.prisma.loja.delete({
+      where: { id },
+    });
   }
 }

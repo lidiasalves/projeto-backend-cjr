@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable prettier/prettier */
 
 import { NestFactory } from '@nestjs/core';
@@ -33,6 +33,7 @@ async function bootstrap() {
   app.use('/uploads', express.static(uploadPath));
 
   await app.listen(process.env.PORT ?? 3001);
+  console.log("API rodando em http://localhost:3001");
 }
 
 bootstrap();
