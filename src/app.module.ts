@@ -7,11 +7,21 @@ import { ImagemProdutoModule } from './imagem-produto/imagemProduto.module';
 import { CategoriaModule } from './categoria/categoria.module';
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
-import { PrismaService } from './database/prisma.service';
+// Removemos o PrismaService dos providers diretos e usamos o Modulo
+import { DatabaseModule } from './database/database.module'; 
+import { LojaModule } from './loja/loja.module';
+import { AvaliacaoModule } from './avaliacao/avaliacao.module';
 @Module({
-  imports: [UsuarioModule,ImagemProdutoModule,CategoriaModule],
-  controllers: [AppController,AuthController],
-  providers: [AppService,AuthService,PrismaService],
-  exports: [PrismaService],
+  imports: [
+    DatabaseModule, // Importa o banco globalmente
+    UsuarioModule,
+    ImagemProdutoModule,
+    CategoriaModule, 
+    LojaModule,
+    AvaliacaoModule
+  ],
+  controllers: [AppController, AuthController],
+  providers: [AppService, AuthService], 
+  // Não precisa exportar PrismaService aqui se o DatabaseModule já faz isso
 })
 export class AppModule {}

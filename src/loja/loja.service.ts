@@ -1,56 +1,82 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
-import { CreateLojaDto } from './dto/create-loja.dto';
-import { UpdateLojaDto } from './dto/update-loja.dto';
 
 @Injectable()
 export class LojaService {
   constructor(private prisma: PrismaService) {}
 
-  create(createLojaDto: CreateLojaDto) {
-    return this.prisma.loja.create({
+  async create(data: any) {
+    return await this.prisma.loja.create({
       data: {
-        nome: createLojaDto.nome,
-        descricao: createLojaDto.descricao || '',
-        logo_url: createLojaDto.logo_url || '',
-        banner_url: createLojaDto.banner_url || '',
-        sticker_url: createLojaDto.sticker_url || null,
-        UsuarioId: createLojaDto.UsuarioId,
-        CategoriaId: createLojaDto.CategoriaId,
-      },
-    });
-  }
+        // Campos simples
+        nome: data.nome,
+        descricao: data.descricao,
+        
+        // CORREÇÃO: Usando as chaves snake_case exatas do banco
+        logo_url: data.logo_url,
+        banner_url: data.banner_url,
+        sticker_url: data.sticker_url,
 
-  findAll() {
-    return this.prisma.loja.findMany({
+        // Conexões (Foreign Keys)
+        usuario: {
+          connect: { id: data.UsuarioId },
+        },
+        categoria: {
+          connect: { id: data.CategoriaId },
+        },
+      },
       include: {
-        usuario: true,
         categoria: true,
       },
     });
   }
 
-  findOne(id: number) {
-    return this.prisma.loja.findUnique({
+  async findAll() {
+    return await this.prisma.loja.findMany({
+      include: {
+        categoria: true,
+      },
+      orderBy: { criado_em: 'desc' }
+    });
+  }
+
+  async findOne(id: number) {
+    const loja = await this.prisma.loja.findUnique({
       where: { id },
       include: {
-        usuario: true,
         categoria: true,
         produtos: true,
-        avaliacoes: true,
+        avaliacoes: { include: { usuario: true } },
+        usuario: {
+            select: { nome: true, email: true, foto_perfil_url: true }
+        }
+      },
+    });
+
+    if (!loja) throw new NotFoundException(`Loja com ID ${id} não encontrada`);
+    
+    return loja;
+  }
+
+  async update(id: number, data: any) {
+    await this.findOne(id);
+
+    return await this.prisma.loja.update({
+      where: { id },
+      data: {
+        nome: data.nome,
+        descricao: data.descricao,
+        // Só atualiza se o campo vier preenchido
+        ...(data.logo_url && { logo_url: data.logo_url }),
+        ...(data.banner_url && { banner_url: data.banner_url }),
+        ...(data.sticker_url && { sticker_url: data.sticker_url }),
       },
     });
   }
 
-  update(id: number, updateLojaDto: UpdateLojaDto) {
-    return this.prisma.loja.update({
-      where: { id },
-      data: updateLojaDto,
-    });
-  }
-
-  remove(id: number) {
-    return this.prisma.loja.delete({
+  async remove(id: number) {
+    await this.findOne(id);
+    return await this.prisma.loja.delete({
       where: { id },
     });
   }
