@@ -13,6 +13,7 @@ import {
   Put,
   UploadedFiles,
   UseInterceptors,
+  Query
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -93,9 +94,10 @@ async update(
 
 
   @Get()
-  async findAll(): Promise<Produto[]> {
-    return this.produtoService.findAll();
-  }
+  async findAll(@Query('categoria') categoria?: string): Promise<Produto[]> {
+
+    return this.produtoService.findAll(categoria);
+  }
 
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<Produto> {

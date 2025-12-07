@@ -38,12 +38,36 @@ export class ProdutoService {
     });
   }
 
-  async findAll(): Promise<Produto[]> {
+async findAll(categoriaNome?: string): Promise<Produto[]> {
+    let whereClause = {};
+
+    if (categoriaNome) {
+        const categoria = await this.prisma.categoria.findUnique({
+            where: {
+                nome: categoriaNome
+            },
+            select: { id: true }
+        });
+
+        if (categoria) {
+            whereClause = {
+                CategoriaId: categoria.id,
+            };
+        } else {
+            return [];
+        }
+    }
+
     return this.prisma.produto.findMany({
-      include: { imagens: true },
-      orderBy: { criado_em: 'desc' },
+        include: {
+            imagens: true, 
+            categoria: true,
+            loja: true, 
+        },
+        where: whereClause, // Aplica o filtro CategoriaId
+        orderBy: { criado_em: 'desc' },
     });
-  }
+}
 
   async update(
     id: number,

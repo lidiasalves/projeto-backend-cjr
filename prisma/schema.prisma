@@ -79,7 +79,7 @@ model Imagens_Produto {
 
 model Categoria {
   id   Int    @id @default(autoincrement())
-  nome String @db.VarChar(100)
+  nome String @unique @db.VarChar(100)
 
   categoria_pai    Categoria? @relation("CategoriaPai", fields: [categoria_pai_id], references: [id])
   categoria_pai_id Int?

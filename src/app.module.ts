@@ -12,6 +12,8 @@ import { DatabaseModule } from './database/database.module';
 import { LojaModule } from './loja/loja.module';
 import { AvaliacaoModule } from './avaliacao/avaliacao.module';
 import { ProdutoModule } from './produto/produto.module';
+import { PesquisaModule } from './pesquisa/pesquisa.module';
+
 @Module({
   imports: [
     DatabaseModule, // Importa o banco globalmente
@@ -20,10 +22,11 @@ import { ProdutoModule } from './produto/produto.module';
     CategoriaModule, 
     LojaModule,
     AvaliacaoModule,
-    ProdutoModule
+    ProdutoModule,
+    PesquisaModule
   ],
   controllers: [AppController, AuthController],
   providers: [AppService, AuthService], 
-  // Não precisa exportar PrismaService aqui se o DatabaseModule já faz isso
+
 })
 export class AppModule {}
