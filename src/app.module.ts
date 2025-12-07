@@ -11,6 +11,7 @@ import { AuthService } from './auth/auth.service';
 import { DatabaseModule } from './database/database.module'; 
 import { LojaModule } from './loja/loja.module';
 import { AvaliacaoModule } from './avaliacao/avaliacao.module';
+import { ProdutoModule } from './produto/produto.module';
 @Module({
   imports: [
     DatabaseModule, // Importa o banco globalmente
@@ -18,7 +19,8 @@ import { AvaliacaoModule } from './avaliacao/avaliacao.module';
     ImagemProdutoModule,
     CategoriaModule, 
     LojaModule,
-    AvaliacaoModule
+    AvaliacaoModule,
+    ProdutoModule
   ],
   controllers: [AppController, AuthController],
   providers: [AppService, AuthService], 

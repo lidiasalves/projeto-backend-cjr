@@ -1,4 +1,5 @@
 /* eslint-disable prettier/prettier */
+import { Type } from 'class-transformer/types/decorators';
 import { IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateProdutoDto {
@@ -11,6 +12,7 @@ export class CreateProdutoDto {
   descricao: string;
 
   @IsNumber()
+  @Type(() => Number)
   preco: number;
 
   @IsInt()
@@ -22,5 +24,6 @@ export class CreateProdutoDto {
   
 
   @IsInt()
+  @Type(() => Number)
   CategoriaId: number;
 }

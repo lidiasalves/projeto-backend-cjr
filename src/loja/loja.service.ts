@@ -52,10 +52,17 @@ export class LojaService {
       where: { id },
       include: {
         categoria: true,
-        produtos: true,
-        avaliacoes: { include: { usuario: true } },
         usuario: {
           select: { nome: true, email: true, foto_perfil_url: true },
+        },
+        produtos: {
+          include: {
+            imagens: true,
+            categoria: true,
+          },
+        },
+        avaliacoes: {
+          include: { usuario: true },
         },
       },
     });

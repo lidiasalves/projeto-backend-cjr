@@ -80,9 +80,14 @@ async getById(id: number) {
       // Traz as Lojas do usuário
       lojas: {
         include: {
-          produtos: true, // E dentro da loja, traz os produtos (para o carrossel de produtos)
+          produtos: {
+            include: {
+              imagens: true
+            }
+          }
         }
       },
+
 
       // Traz as Avaliações que ele fez
       avaliacoes_loja: {
