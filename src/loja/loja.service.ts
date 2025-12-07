@@ -10,51 +10,32 @@ export class LojaService {
   async create(data: any) {
     return await this.prisma.loja.create({
       data: {
-        // Campos simples
         nome: data.nome,
         descricao: data.descricao,
-
-        // CORREÇÃO: Usando as chaves snake_case exatas do banco
         logo_url: data.logo_url,
         banner_url: data.banner_url,
         sticker_url: data.sticker_url,
 
-        // Conexões (Foreign Keys)
-        usuario: {
-          connect: { id: data.UsuarioId },
-        },
-        categoria: {
-          connect: { id: data.CategoriaId },
-        },
+        usuario: { connect: { id: data.UsuarioId } },
+        categoria: { connect: { id: data.CategoriaId } },
       },
-      include: {
-        categoria: true,
-      },
+      include: { categoria: true },
     });
   }
 
   async findAll() {
-    const lojas = await this.prisma.loja.findMany({
-      include: {
-        categoria: true,
-      },
+    return this.prisma.loja.findMany({
+      include: { categoria: true },
       orderBy: { criado_em: 'desc' },
     });
-
-    // 💡 NOVO: LOG PARA DEBUGAR
-    console.log('Lojas encontradas pelo Prisma:', lojas.length);
-    console.log('Primeira Loja (para estrutura):', lojas[0]);
-
-    return lojas;
   }
+
   async findOne(id: number) {
     const loja = await this.prisma.loja.findUnique({
       where: { id },
       include: {
         categoria: true,
-        usuario: {
-          select: { nome: true, email: true, foto_perfil_url: true },
-        },
+        usuario: { select: { nome: true, email: true, foto_perfil_url: true } },
         produtos: {
           include: {
             imagens: true,
@@ -68,7 +49,6 @@ export class LojaService {
     });
 
     if (!loja) throw new NotFoundException(`Loja com ID ${id} não encontrada`);
-
     return loja;
   }
 
@@ -80,7 +60,6 @@ export class LojaService {
       data: {
         nome: data.nome,
         descricao: data.descricao,
-        // Só atualiza se o campo vier preenchido
         ...(data.logo_url && { logo_url: data.logo_url }),
         ...(data.banner_url && { banner_url: data.banner_url }),
         ...(data.sticker_url && { sticker_url: data.sticker_url }),
@@ -88,10 +67,55 @@ export class LojaService {
     });
   }
 
+  // 🔥🔥🔥 REMOVE COMPLETO
   async remove(id: number) {
     await this.findOne(id);
-    return await this.prisma.loja.delete({
-      where: { id },
+
+    await this.prisma.$transaction(async (tx) => {
+      // 1. Comentários das avaliações da loja
+      await tx.comentario_Avaliacao.deleteMany({
+        where: { avaliacao_loja: { LojaId: id } },
+      });
+
+      // 2. Comentários das avaliações de produtos da loja
+      await tx.comentario_Avaliacao.deleteMany({
+        where: {
+          avaliacao_produto: {
+            produto: { LojaId: id },
+          },
+        },
+      });
+
+      // 3. Avaliações da loja
+      await tx.avaliacoes_Loja.deleteMany({
+        where: { LojaId: id },
+      });
+
+      // 4. Avaliações de produtos da loja
+      await tx.avalicoes_Produto.deleteMany({
+        where: {
+          produto: { LojaId: id },
+        },
+      });
+
+      // 5. Imagens de produtos da loja
+      await tx.imagens_Produto.deleteMany({
+        where: {
+          produto: { LojaId: id },
+        },
+      });
+
+      // 6. Produtos da loja
+      await tx.produto.deleteMany({
+        where: { LojaId: id },
+      });
+
+      // 7. Por fim, a loja
+      await tx.loja.delete({
+        where: { id },
+      });
     });
+
+    return { message: `Loja ${id} deletada com sucesso.` };
   }
 }
