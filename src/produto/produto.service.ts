@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable no-irregular-whitespace */
+/* eslint-disable prettier/prettier */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { CreateProdutoDto } from './dto/createProduto.dto';
@@ -20,7 +24,7 @@ export class ProdutoService {
       },
     });
 
-    if (fotos.length > 0) {
+   if (fotos.length > 0) {
       const baseUrl = process.env.API_BASE_URL ?? 'http://localhost:3001';
 
       await this.prisma.imagens_Produto.createMany({
